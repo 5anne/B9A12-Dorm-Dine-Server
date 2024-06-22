@@ -5,7 +5,15 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+            "http://localhost:5173",
+            "https://dorm-dine-6deee.web.app",
+            "https://dorm-dine-6deee.firebaseapp.com",
+        ]
+    })
+);
 app.use(express.json());
 
 
@@ -24,7 +32,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const allMealsCollection = client.db('dineDB').collection('allMeals');
         const userInfoDB = client.db('dineDB').collection('userInfo');
@@ -56,6 +64,11 @@ async function run() {
         app.post('/userInfo', async (req, res) => {
             const user = req.body;
             console.log(user);
+            const query = { email: user.email }
+            const existingUser = await userInfoDB.findOne(query);
+            if (existingUser) {
+                return res.send({ message: 'User already exists!', insertedId: null })
+            }
             const result = await userInfoDB.insertOne(user);
             res.send(result);
         })
@@ -76,9 +89,7 @@ async function run() {
         })
 
         app.patch('/mealJson/:id', async (req, res) => {
-            const user = req.body;
-            console.log(user);
-            const id = user._id;
+            const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
@@ -89,8 +100,20 @@ async function run() {
             res.send(result);
         })
 
+        app.patch('/userInfo/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userInfoDB.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
