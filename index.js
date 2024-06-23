@@ -79,6 +79,13 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/allMeals/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await allMealsCollection.findOne(query);
+            res.send(result);
+        })
+
         app.get("/mealJson", async (req, res) => {
             const result = await mealJsonDB.find().toArray();
             res.send(result);
@@ -143,6 +150,13 @@ async function run() {
             res.send(result);
         })
 
+        app.delete('/allMeals/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await allMealsCollection.deleteOne(query);
+            res.send(result);
+        })
+
         // app.patch('/mealJson/:id', async (req, res) => {
         //     const id = req.params.id;
         //     console.log(id);
@@ -168,6 +182,30 @@ async function run() {
                 }
             }
             const result = await userInfoDB.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.patch('/allMeals/:id', async (req, res) => {
+            const meal = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    title: meal.title,
+                    category: meal.category,
+                    image: meal.image,
+                    ingredients: meal.ingredients,
+                    description: meal.description,
+                    price: meal.price,
+                    rating: meal.rating,
+                    post_time: meal.post_time,
+                    likes: meal.likes,
+                    reviews: meal.reviews,
+                    admin_name: meal.admin_name,
+                    admin_email: meal.admin_email
+                }
+            }
+            const result = await allMealsCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
 
