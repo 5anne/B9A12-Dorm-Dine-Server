@@ -88,21 +88,26 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/mealJson/:id', async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const updateDoc = {
-                $set: {
-                    likeCount: user.likeCount
-                }
-            }
-            const result = await mealJsonDB.updateOne(filter, updateDoc);
-            res.send(result);
-        })
+        // app.patch('/mealJson/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     console.log(id);
+        //     const filter = { _id: new ObjectId(id) };
+        //     console.log(filter);
+        //     const updateDoc = {
+        //         $set: {
+        //             likeCount: user.likeCount
+        //         }
+        //     }
+        //     console.log(updateDoc);
+        //     const result = await mealJsonDB.updateOne(filter, updateDoc);
+        //     console.log(result);
+        //     res.send(result);
+        // })
 
         app.patch('/userInfo/admin/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
+            // const options = { upsert: true };
             const updateDoc = {
                 $set: {
                     role: 'admin'
