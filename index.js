@@ -122,6 +122,12 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/allMeals', verifyToken, verifyAdmin, async (req, res) => {
+            const meal = req.body;
+            const result = await allMealsCollection.insertOne(meal);
+            res.send(result);
+        })
+
         app.patch('/mealJson/:id', async (req, res) => {
             const user = req.body;
             console.log(user);
