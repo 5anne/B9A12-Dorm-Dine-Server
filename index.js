@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRPE_SECRET_KEY)
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -38,6 +39,7 @@ async function run() {
         const allMealsCollection = client.db('dineDB').collection('allMeals');
         const userInfoDB = client.db('dineDB').collection('userInfo');
         const mealJsonDB = client.db('dineDB').collection('mealJson');
+        const premiumJsonDB = client.db('dineDB').collection('premiumJson');
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
@@ -95,6 +97,18 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await mealJsonDB.findOne(query);
+            res.send(result);
+        })
+
+        app.get("/premiumJson", async (req, res) => {
+            const result = await premiumJsonDB.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/premiumJson/:badge', async (req, res) => {
+            const badge = req.params.badge;
+            const query = { badge: badge };
+            const result = await premiumJsonDB.findOne(query);
             res.send(result);
         })
 
@@ -208,6 +222,21 @@ async function run() {
             const result = await allMealsCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
+
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            console.log(amount);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
