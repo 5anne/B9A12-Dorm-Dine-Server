@@ -40,6 +40,7 @@ async function run() {
         const userInfoDB = client.db('dineDB').collection('userInfo');
         const mealJsonDB = client.db('dineDB').collection('mealJson');
         const premiumJsonDB = client.db('dineDB').collection('premiumJson');
+        const paymentJsonDB = client.db('dineDB').collection('payments');
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
@@ -129,6 +130,15 @@ async function run() {
                 admin = user?.role === 'admin';
             }
             res.send({ admin });
+        })
+
+        app.get('/payments/:email', verifyToken, async (req, res) => {
+            const query = { email: req.params.email }
+            if (req.params.email !== req.decoded.email) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            const result = await paymentJsonDB.find(query).toArray();
+            res.send(result);
         })
 
         app.post('/userInfo', async (req, res) => {
@@ -237,6 +247,15 @@ async function run() {
                 clientSecret: paymentIntent.client_secret,
             });
         });
+
+        app.post('/payments', async (req, res) => {
+            const payment = req.body;
+            const result = await paymentJsonDB.insertOne(payment);
+
+            console.log('payment info', payment);
+            res.send(result);
+        })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
