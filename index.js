@@ -118,6 +118,18 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/userInfo/:name', verifyToken, verifyAdmin, async (req, res) => {
+            const query = { name: req.params.name }
+            const result = await userInfoDB.find(query).toArray();
+            res.send(result);
+        })
+
+        app.get('/userInfo/:email', verifyToken, verifyAdmin, async (req, res) => {
+            const query = { email: req.params.email }
+            const result = await userInfoDB.find(query).toArray();
+            res.send(result);
+        })
+
         app.get('/userInfo/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             if (email !== req.decoded.email) {
