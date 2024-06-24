@@ -37,8 +37,8 @@ async function run() {
         await client.connect();
 
         const allMealsCollection = client.db('dineDB').collection('allMeals');
+        const requestedMealsCollection = client.db('dineDB').collection('requestedMeals');
         const userInfoDB = client.db('dineDB').collection('userInfo');
-        const mealJsonDB = client.db('dineDB').collection('mealJson');
         const premiumJsonDB = client.db('dineDB').collection('premiumJson');
         const paymentJsonDB = client.db('dineDB').collection('payments');
 
@@ -86,18 +86,6 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await allMealsCollection.findOne(query);
-            res.send(result);
-        })
-
-        app.get("/mealJson", async (req, res) => {
-            const result = await mealJsonDB.find().toArray();
-            res.send(result);
-        })
-
-        app.get('/mealJson/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) };
-            const result = await mealJsonDB.findOne(query);
             res.send(result);
         })
 
@@ -171,18 +159,9 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/mealJson/:id', async (req, res) => {
-            const user = req.body;
-            console.log(user);
-            const id = user._id;
-            const filter = { _id: new ObjectId(id) };
-            const updateDoc = {
-                $set: {
-                    review: user.review,
-                    reviewText: user.reviewText
-                }
-            }
-            const result = await mealJsonDB.updateOne(filter, updateDoc);
+        app.post('/requestedMeals', verifyToken, async (req, res) => {
+            const meal = req.body;
+            const result = await requestedMealsCollection.insertOne(meal);
             res.send(result);
         })
 
@@ -192,22 +171,6 @@ async function run() {
             const result = await allMealsCollection.deleteOne(query);
             res.send(result);
         })
-
-        // app.patch('/mealJson/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     console.log(id);
-        //     const filter = { _id: new ObjectId(id) };
-        //     console.log(filter);
-        //     const updateDoc = {
-        //         $set: {
-        //             likeCount: user.likeCount
-        //         }
-        //     }
-        //     console.log(updateDoc);
-        //     const result = await mealJsonDB.updateOne(filter, updateDoc);
-        //     console.log(result);
-        //     res.send(result);
-        // })
 
         app.patch('/userInfo/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
@@ -237,6 +200,8 @@ async function run() {
                     post_time: meal.post_time,
                     likes: meal.likes,
                     reviews: meal.reviews,
+                    reviewText: meal.reviewText,
+                    status: meal.status,
                     admin_name: meal.admin_name,
                     admin_email: meal.admin_email
                 }
