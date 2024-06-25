@@ -38,6 +38,7 @@ async function run() {
 
         const allMealsCollection = client.db('dineDB').collection('allMeals');
         const requestedMealsCollection = client.db('dineDB').collection('requestedMeals');
+        const upcomingMealsCollection = client.db('dineDB').collection('upcomingMeals');
         const userInfoDB = client.db('dineDB').collection('userInfo');
         const premiumJsonDB = client.db('dineDB').collection('premiumJson');
         const paymentJsonDB = client.db('dineDB').collection('payments');
@@ -89,6 +90,11 @@ async function run() {
             res.send(result);
         })
 
+        app.get("/upcomingMeals", async (req, res) => {
+            const result = await upcomingMealsCollection.find().toArray();
+            res.send(result);
+        })
+
         app.get("/premiumJson", async (req, res) => {
             const result = await premiumJsonDB.find().toArray();
             res.send(result);
@@ -98,6 +104,18 @@ async function run() {
             const badge = req.params.badge;
             const query = { badge: badge };
             const result = await premiumJsonDB.findOne(query);
+            res.send(result);
+        })
+
+        app.get("/requestedMeals", verifyToken, verifyAdmin, async (req, res) => {
+            const result = await requestedMealsCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/requestedMeals/:name', verifyToken, verifyAdmin, async (req, res) => {
+            const query = { name: req.params.name }
+            console.log(query);
+            const result = await requestedMealsCollection.find(query).toArray();
             res.send(result);
         })
 
@@ -165,6 +183,19 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/upcomingMeals', verifyToken, verifyAdmin, async (req, res) => {
+            const meal = req.body;
+            const result = await upcomingMealsCollection.insertOne(meal);
+            res.send(result);
+        })
+
+        app.delete('/upcomingMeals/:id', verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await upcomingMealsCollection.deleteOne(query);
+            res.send(result);
+        })
+
         app.delete('/allMeals/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -207,6 +238,60 @@ async function run() {
                 }
             }
             const result = await allMealsCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.patch('/requestedMeals/:id', async (req, res) => {
+            const meal = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    user_name: meal.user_name,
+                    user_email: meal.user_email,
+                    title: meal.title,
+                    category: meal.category,
+                    image: meal.image,
+                    ingredients: meal.ingredients,
+                    description: meal.description,
+                    price: meal.price,
+                    rating: meal.rating,
+                    post_time: meal.post_time,
+                    likes: meal.likes,
+                    reviews: meal.reviews,
+                    reviewText: meal.reviewText,
+                    status: meal.status,
+                    admin_name: meal.admin_name,
+                    admin_email: meal.admin_email
+                }
+            }
+            const result = await requestedMealsCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.patch('/upcomingMeals/:id', verifyToken, async (req, res) => {
+            const meal = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    title: meal.title,
+                    category: meal.category,
+                    image: meal.image,
+                    ingredients: meal.ingredients,
+                    description: meal.description,
+                    price: meal.price,
+                    rating: meal.rating,
+                    post_time: meal.post_time,
+                    likes: meal.likes,
+                    reviews: meal.reviews,
+                    reviewText: meal.reviewText,
+                    status: meal.status,
+                    admin_name: meal.admin_name,
+                    admin_email: meal.admin_email
+                }
+            }
+            const result = await upcomingMealsCollection.updateOne(filter, updateDoc);
             res.send(result);
         })
 
