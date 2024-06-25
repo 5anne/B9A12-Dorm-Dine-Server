@@ -42,6 +42,7 @@ async function run() {
         const userInfoDB = client.db('dineDB').collection('userInfo');
         const premiumJsonDB = client.db('dineDB').collection('premiumJson');
         const paymentJsonDB = client.db('dineDB').collection('payments');
+        const usersActivity = client.db('dineDB').collection('usersAct');
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
@@ -94,6 +95,10 @@ async function run() {
             const result = await upcomingMealsCollection.find().toArray();
             res.send(result);
         })
+        app.get("/usersAct", async (req, res) => {
+            const result = await usersActivity.find().toArray();
+            res.send(result);
+        })
 
         app.get("/premiumJson", async (req, res) => {
             const result = await premiumJsonDB.find().toArray();
@@ -107,7 +112,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get("/requestedMeals", verifyToken, verifyAdmin, async (req, res) => {
+        app.get("/requestedMeals", verifyToken, async (req, res) => {
             const result = await requestedMealsCollection.find().toArray();
             res.send(result);
         })
@@ -177,7 +182,7 @@ async function run() {
             res.send(result);
         })
 
-        app.post('/requestedMeals', verifyToken, async (req, res) => {
+        app.post('/requestedMeals', verifyToken, verifyAdmin, async (req, res) => {
             const meal = req.body;
             const result = await requestedMealsCollection.insertOne(meal);
             res.send(result);
@@ -186,6 +191,12 @@ async function run() {
         app.post('/upcomingMeals', verifyToken, verifyAdmin, async (req, res) => {
             const meal = req.body;
             const result = await upcomingMealsCollection.insertOne(meal);
+            res.send(result);
+        })
+
+        app.post('/usersAct', async (req, res) => {
+            const meal = req.body;
+            const result = await usersActivity.insertOne(meal);
             res.send(result);
         })
 
@@ -203,12 +214,35 @@ async function run() {
             res.send(result);
         })
 
+        app.delete('/usersAct/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await usersActivity.deleteOne(query);
+            res.send(result);
+        })
+
         app.patch('/userInfo/admin/:id', verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
                     role: 'admin'
+                }
+            }
+            const result = await userInfoDB.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.patch('/userInfo/:email', async (req, res) => {
+            const meal = req.body;
+            const email = req.params.email;
+            const filter = { email: email }
+            const updateDoc = {
+                $set: {
+                    name: meal.name,
+                    email: meal.email,
+                    photo: meal.photo,
+                    userBadge: meal.userBadge
                 }
             }
             const result = await userInfoDB.updateOne(filter, updateDoc);
