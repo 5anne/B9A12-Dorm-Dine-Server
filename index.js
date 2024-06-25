@@ -34,7 +34,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const allMealsCollection = client.db('dineDB').collection('allMeals');
         const requestedMealsCollection = client.db('dineDB').collection('requestedMeals');
@@ -95,6 +95,7 @@ async function run() {
             const result = await upcomingMealsCollection.find().toArray();
             res.send(result);
         })
+        
         app.get("/usersAct", async (req, res) => {
             const result = await usersActivity.find().toArray();
             res.send(result);
@@ -124,7 +125,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get("/userInfo", verifyToken, verifyAdmin, async (req, res) => {
+        app.get("/userInfo", verifyToken, async (req, res) => {
             const result = await userInfoDB.find().toArray();
             res.send(result);
         })
@@ -182,7 +183,7 @@ async function run() {
             res.send(result);
         })
 
-        app.post('/requestedMeals', verifyToken, verifyAdmin, async (req, res) => {
+        app.post('/requestedMeals', verifyToken, async (req, res) => {
             const meal = req.body;
             const result = await requestedMealsCollection.insertOne(meal);
             res.send(result);
@@ -211,6 +212,13 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await allMealsCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.delete('/requestedMeals/:id', verifyToken, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await requestedMealsCollection.deleteOne(query);
             res.send(result);
         })
 
@@ -354,7 +362,7 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
