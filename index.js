@@ -61,9 +61,11 @@ async function run() {
 
         const verifyAdmin = async (req, res, next) => {
             const email = req.decoded.email;
+            console.log(req.decoded.email);
             const query = { email: email };
             const user = await userInfoDB.findOne(query);
             const isAdmin = user?.role === 'admin';
+            console.log(isAdmin);
             if (!isAdmin) {
                 return res.status(403).send({ message: 'forbidden access' });
             }
@@ -97,7 +99,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/allMeals/:id', verifyToken, verifyAdmin, async (req, res) => {
+        app.patch('/allMeals/:id', verifyToken, async (req, res) => {
             const meal = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -179,7 +181,7 @@ async function run() {
             res.send(result);
         })
 
-        app.post('/usersAct', async (req, res) => {
+        app.post('/usersAct', verifyToken, async (req, res) => {
             const meal = req.body;
             const result = await usersActivity.insertOne(meal);
             res.send(result);
@@ -278,13 +280,16 @@ async function run() {
         app.get('/userInfoEmail/:email', async (req, res) => {
             // const query = { email: req.params.email }
             const query = { email: { $regex: new RegExp(req.params.email, 'i') } }
+            console.log(req.params.email);
             // console.log(query);
             const result = await userInfoDB.find(query).toArray();
             res.send(result);
         })
 
-        app.get('/userInfo/admin/:email', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/userInfo/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
+            console.log(req.params.email);
+            console.log(req.decoded.email);
             if (email !== req.decoded.email) {
                 return res.status(403).send({ message: 'forbidden access' })
             }
