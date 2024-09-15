@@ -91,13 +91,13 @@ async function run() {
             res.send(mealCount);
         })
 
-        app.post('/allMeals', verifyToken, verifyAdmin, async (req, res) => {
+        app.post('/allMeals', async (req, res) => {
             const meal = req.body;
             const result = await allMealsCollection.insertOne(meal);
             res.send(result);
         })
 
-        app.patch('/allMeals/:id', verifyToken, async (req, res) => {
+        app.patch('/allMeals/:id', async (req, res) => {
             const meal = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -141,7 +141,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/upcomingMeals/:id', verifyToken, async (req, res) => {
+        app.patch('/upcomingMeals/:id', async (req, res) => {
             const meal = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -185,7 +185,7 @@ async function run() {
             res.send(result);
         })
 
-        app.post('/usersAct', verifyToken, async (req, res) => {
+        app.post('/usersAct', async (req, res) => {
             const meal = req.body;
             const result = await usersActivity.insertOne(meal);
             res.send(result);
@@ -204,7 +204,7 @@ async function run() {
             res.send(result);
         })
 
-        app.delete('/usersAct/:id', async (req, res) => {
+        app.delete('/usersAct/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
             const result = await usersActivity.deleteOne(query);
@@ -234,19 +234,19 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/requestedMealsEmail/:email', async (req, res) => {
+        app.get('/requestedMealsEmail/:email', verifyToken, verifyAdmin, async (req, res) => {
             const query = { user_email: { $regex: new RegExp(req.params.email, 'i') } }
             const result = await requestedMealsCollection.find(query).toArray();
             res.send(result);
         })
 
-        app.post('/requestedMeals', verifyToken, async (req, res) => {
+        app.post('/requestedMeals', async (req, res) => {
             const meal = req.body;
             const result = await requestedMealsCollection.insertOne(meal);
             res.send(result);
         })
 
-        app.patch('/requestedMeals/:id', async (req, res) => {
+        app.patch('/requestedMeals/:id', verifyToken, async (req, res) => {
             const meal = req.body;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -286,13 +286,13 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/userInfo/:name', async (req, res) => {
+        app.get('/userInfo/:name', verifyToken, async (req, res) => {
             const query = { name: { $regex: new RegExp(req.params.name, 'i') } }
             const result = await userInfoDB.find(query).toArray();
             res.send(result);
         })
 
-        app.get('/userInfoEmail/:email', async (req, res) => {
+        app.get('/userInfoEmail/:email', verifyToken, async (req, res) => {
             const query = { email: { $regex: new RegExp(req.params.email, 'i') } }
             const result = await userInfoDB.find(query).toArray();
             res.send(result);
@@ -387,7 +387,7 @@ async function run() {
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
