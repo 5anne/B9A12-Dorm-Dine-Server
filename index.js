@@ -87,9 +87,7 @@ async function run() {
 
         app.get('/allMealsEmail/:email', async (req, res) => {
             const query = { admin_email: { $regex: new RegExp(req.params.email, '') } }
-            console.log(query);
             const mealCount = await allMealsCollection.find(query).toArray();
-            console.log(mealCount);
             res.send(mealCount);
         })
 
@@ -181,9 +179,28 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/usersAct/:email', async (req, res) => {
+            const query = { user_email: { $regex: new RegExp(req.params.email, 'i') } };
+            const result = await usersActivity.find(query).toArray();
+            res.send(result);
+        })
+
         app.post('/usersAct', verifyToken, async (req, res) => {
             const meal = req.body;
             const result = await usersActivity.insertOne(meal);
+            res.send(result);
+        })
+
+        app.patch('/usersAct/:id', verifyToken, async (req, res) => {
+            const meal = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    reviewText: meal.reviewText
+                }
+            }
+            const result = await usersActivity.updateOne(filter, updateDoc);
             res.send(result);
         })
 
@@ -213,7 +230,6 @@ async function run() {
 
         app.get('/requestedMeals/:name', verifyToken, verifyAdmin, async (req, res) => {
             const query = { user_name: { $regex: new RegExp(req.params.name, 'i') } }
-            console.log(query);
             const result = await requestedMealsCollection.find(query).toArray();
             res.send(result);
         })
@@ -271,25 +287,19 @@ async function run() {
         })
 
         app.get('/userInfo/:name', async (req, res) => {
-            // const query = { name: req.params.name }
             const query = { name: { $regex: new RegExp(req.params.name, 'i') } }
             const result = await userInfoDB.find(query).toArray();
             res.send(result);
         })
 
         app.get('/userInfoEmail/:email', async (req, res) => {
-            // const query = { email: req.params.email }
             const query = { email: { $regex: new RegExp(req.params.email, 'i') } }
-            console.log(req.params.email);
-            // console.log(query);
             const result = await userInfoDB.find(query).toArray();
             res.send(result);
         })
 
         app.get('/userInfo/admin/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
-            console.log(req.params.email);
-            console.log(req.decoded.email);
             if (email !== req.decoded.email) {
                 return res.status(403).send({ message: 'forbidden access' })
             }
